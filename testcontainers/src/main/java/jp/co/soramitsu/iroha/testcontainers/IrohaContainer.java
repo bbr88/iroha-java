@@ -31,7 +31,7 @@ public class IrohaContainer extends FailureDetectingExternalResource implements 
   public static final String defaultPostgresAlias = "iroha.postgres";
   public static final String defaultIrohaAlias = "iroha";
   public static final String irohaWorkdir = "/opt/iroha_data";
-  public static final String defaultIrohaDockerImage = "hyperledger/iroha:1.4.0-rc.2";
+  public static final String defaultIrohaDockerImage = "hyperledger/iroha:1.2.0";
   public static final String defaultPostgresDockerImage = "postgres:11-alpine";
 
   // env vars
@@ -97,7 +97,7 @@ public class IrohaContainer extends FailureDetectingExternalResource implements 
         .withEnv("WAIT_TIMEOUT", "0") // don't wait for postgres
         .withEnv(VERBOSITY, verbosity)
         .withNetwork(network)
-        .withExposedPorts(conf.getIrohaConfig().getTorii_port())
+        .withExposedPorts(conf.getIrohaConfig().getTorii_port(), conf.getIrohaConfig().getHealthcheck_port())
         .withCopyFileToContainer(MountableFile.forHostPath(conf.getDir().getAbsolutePath()),
             irohaWorkdir)
         .waitingFor(
