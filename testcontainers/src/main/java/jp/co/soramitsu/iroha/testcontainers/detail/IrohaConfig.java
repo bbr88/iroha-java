@@ -46,6 +46,9 @@ public class IrohaConfig implements Cloneable {
   private int proposal_delay = 1000;
 
   @Builder.Default
+  private int proposal_creation_timeout = 500;
+
+  @Builder.Default
   private int vote_delay = 1000;
 
   @Builder.Default
@@ -62,7 +65,10 @@ public class IrohaConfig implements Cloneable {
 
   @Builder.Default
   private int stale_stream_max_rounds = 2;
-  
+
+  @Builder.Default
+  private int healthcheck_port = 50508;
+
   private LoggerConfig log;
 
   @Override
