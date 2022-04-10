@@ -268,6 +268,10 @@ public class IrohaContainer extends FailureDetectingExternalResource implements 
     return null;
   }
 
+  public int getHealthCheckPort() {
+    return irohaDockerContainer.getMappedPort(conf.getIrohaConfig().getHealthcheck_port());
+  }
+
   /**
    * Returns directory on host filesystem, where peer configuration is stored.
    */

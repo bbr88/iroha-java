@@ -23,29 +23,30 @@ final def okhttpVersion = '4.9.3'
 final def jacksonVersion = '2.13.2.2'
 
 dependencies {
-    implementation "io.reactivex.rxjava2:rxjava:$rxjavaVersion"
-    implementation "net.i2p.crypto:eddsa:$edDsaVersion"
+    compile "io.reactivex.rxjava2:rxjava:${rxjavaVersion}"
+    compile "com.github.soramitsu:iroha-ed25519-sha3-java:${edSha3Version}"
+    compile "net.i2p.crypto:eddsa:${edDsaVersion}"
+
     implementation "com.squareup.okhttp3:okhttp:$okhttpVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-    implementation 'javax.annotation:javax.annotation-api:1.3.2'
 
-    compile "com.github.soramitsu:iroha-ed25519-sha3-java:$edSha3Version"
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    testCompileOnly("org.projectlombok:lombok:$lombokVersion")
 
-    compileOnly  "org.projectlombok:lombok:$lombokVersion"
-    testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testCompile "com.nagternal:spock-genesis:${spockGenesisVersion}"
+    testCompile "org.spockframework:spock-core:${spockVersion}"
 
-    testImplementation "com.nagternal:spock-genesis:$spockGenesisVersion"
-    testImplementation "org.spockframework:spock-core:$spockVersion"
-
-    testImplementation project(":testcontainers")
-    compile "com.jcabi:jcabi-aspects:$jcabiVersion"
+    testCompile project(":testcontainers")
+    compile group: 'com.jcabi', name: 'jcabi-aspects', version: "${jcabiVersion}"
 
     runtime 'io.netty:netty-tcnative-boringssl-static:2.0.34.Final'
 
     // for mocking in groovy
-    testImplementation "net.bytebuddy:byte-buddy:$bytebuddyVersion"
-    testImplementation "org.objenesis:objenesis:$objgenesisVersion"
-    testImplementation "cglib:cglib-nodep:$cglibVersion"
+    testCompile("net.bytebuddy:byte-buddy:${bytebuddyVersion}")
+    testCompile("org.objenesis:objenesis:${objgenesisVersion}")
+    testCompile("cglib:cglib-nodep:${cglibVersion}")
+
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
 }
 
 apply from: 'proto.gradle'

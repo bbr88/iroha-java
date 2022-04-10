@@ -38,10 +38,8 @@ class HealthCheckTest extends Specification {
     def "health check of a healthy node with a default health check port"() {
         given:
         final def healthCheckClient = new HealthCheckClient(
-                irohaWithDefaultHealthCheckPort.getIrohaDockerContainer()
-                        .getContainerIpAddress(),
-                irohaWithDefaultHealthCheckPort.getIrohaDockerContainer()
-                        .getMappedPort(HealthCheckClient.DEFAULT_HEALTH_CHECK_PORT))
+                irohaWithDefaultHealthCheckPort.getIrohaDockerContainer().getContainerIpAddress(),
+                irohaWithDefaultHealthCheckPort.getHealthCheckPort())
 
         when: "call the health check endpoint of a healthy node"
         final def response = healthCheckClient.check()
@@ -55,10 +53,8 @@ class HealthCheckTest extends Specification {
     def "health check of a healthy node with a custom health check port"() {
         given:
         final def healthCheckClient = new HealthCheckClient(
-                irohaWithCustomHealthCheckPort.getIrohaDockerContainer()
-                        .getContainerIpAddress(),
-                irohaWithCustomHealthCheckPort.getIrohaDockerContainer()
-                        .getMappedPort(customHealthCheckPort))
+                irohaWithCustomHealthCheckPort.getIrohaDockerContainer().getContainerIpAddress(),
+                irohaWithDefaultHealthCheckPort.getHealthCheckPort())
 
         when: "call the health check endpoint of a healthy node"
         final def response = healthCheckClient.check()
