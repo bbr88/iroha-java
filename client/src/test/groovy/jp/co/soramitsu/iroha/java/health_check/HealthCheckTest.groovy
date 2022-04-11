@@ -3,38 +3,44 @@ package jp.co.soramitsu.iroha.java.health_check
 import jp.co.soramitsu.iroha.testcontainers.IrohaContainer
 import jp.co.soramitsu.iroha.testcontainers.PeerConfig
 import jp.co.soramitsu.iroha.testcontainers.detail.IrohaConfig
-import spock.lang.Retry
+import jp.co.soramitsu.iroha.testcontainers.network.IrohaNetwork
 import spock.lang.Specification
 
 class HealthCheckTest extends Specification {
 
     // Change the container's version to 1.4 as soon as it's released
-    static def irohaDockerImage = "hyperledger/iroha:1.4.0-rc.2"
-    static def irohaWithDefaultHealthCheckPort = new IrohaContainer()
-            .withIrohaDockerImage(irohaDockerImage)
+    static final IROHA_DOCKER_IMAGE = "hyperledger/iroha:1.4.0-rc.2"
+    static final CUSTOM_HEALTH_CHECK_PORT = HealthCheckClient.DEFAULT_HEALTH_CHECK_PORT + 1
 
-    static def customHealthCheckPort = HealthCheckClient.DEFAULT_HEALTH_CHECK_PORT + 1
+    static def irohaWithDefaultHealthCheckPort = new IrohaContainer()
+            .withIrohaDockerImage(IROHA_DOCKER_IMAGE)
+
     static def irohaWithCustomHealthCheckPort = new IrohaContainer()
             .withPeerConfig(
                     PeerConfig.builder()
                             .irohaConfig(
                                     IrohaConfig.builder()
-                                            .healthcheck_port(customHealthCheckPort)
+                                            .healthcheck_port(CUSTOM_HEALTH_CHECK_PORT)
                                             .build())
                             .build())
-            .withIrohaDockerImage(irohaDockerImage)
+            .withIrohaDockerImage(IROHA_DOCKER_IMAGE)
+
+    static def irohaNetwork = new IrohaNetwork(3, IROHA_DOCKER_IMAGE)
 
     def setupSpec() {
         irohaWithDefaultHealthCheckPort.start()
         irohaWithCustomHealthCheckPort.start()
+        irohaNetwork.start()
+
+        sleep(5000) // It takes a few seconds for a node to become healthy
     }
 
     def cleanupSpec() {
         irohaWithDefaultHealthCheckPort.stop()
         irohaWithCustomHealthCheckPort.stop()
+        irohaNetwork.stop()
     }
 
-    @Retry(delay = 3000)
     def "health check of a healthy node with a default health check port"() {
         given:
         final def healthCheckClient = new HealthCheckClient(
@@ -49,7 +55,6 @@ class HealthCheckTest extends Specification {
         response.status
     }
 
-    @Retry(delay = 3000)
     def "health check of a healthy node with a custom health check port"() {
         given:
         final def healthCheckClient = new HealthCheckClient(
@@ -74,6 +79,39 @@ class HealthCheckTest extends Specification {
 
         then:
         response.status == HealthResponse.unhealthy().status
+    }
+
+    def "health check of a healthy Iroha network"() {
+        given:
+        final def healthCheckResponses = new ArrayList<HealthResponse>(irohaNetwork.peers.size());
+        healthCheckResponses.isEmpty()
+
+        and: "the network is running"
+        irohaNetwork.getPeers()
+                .stream()
+                .map({ p -> p.getContainer() })
+                .allMatch({ c ->
+                    final def ir = c.getIrohaDockerContainer()
+
+                    return ir.isRunning()
+                })
+
+        when: "call the health check endpoint of each network's node"
+        irohaNetwork.getPeers().each {
+            final def healthCheckClient = new HealthCheckClient(
+                    it.container.getIrohaDockerContainer().getContainerIpAddress(),
+                    it.container.getHealthCheckPort())
+
+            final def response = healthCheckClient.check()
+            healthCheckResponses.add(response)
+        }
+
+        then:
+        healthCheckResponses.size() == irohaNetwork.peers.size()
+        healthCheckResponses.each {
+            assert !it.syncing
+            assert it.status
+        }
     }
 
 }

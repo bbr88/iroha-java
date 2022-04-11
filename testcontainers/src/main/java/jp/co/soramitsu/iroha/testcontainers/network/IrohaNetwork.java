@@ -40,6 +40,16 @@ public class IrohaNetwork extends FailureDetectingExternalResource implements St
    * @param peers number of peers in this network.
    */
   public IrohaNetwork(int peers) {
+      this(peers, null);
+  }
+
+  /**
+   * Creates network of peers with a specified docker image
+   *
+   * @param peers number of peers in this network.
+   * @param irohaDockerImage Iroha version for this network.
+   */
+  public IrohaNetwork(int peers, String irohaDockerImage) {
     if (peers <= 0) {
       throw new IllegalArgumentException("peers must be positive");
     }
@@ -61,7 +71,9 @@ public class IrohaNetwork extends FailureDetectingExternalResource implements St
           address,
           pgAddress,
           kp,
-          new IrohaContainer()
+          irohaDockerImage == null
+                  ? new IrohaContainer()
+                  : new IrohaContainer().withIrohaDockerImage(irohaDockerImage)
       );
 
       // add this peer to peer list
@@ -124,7 +136,6 @@ public class IrohaNetwork extends FailureDetectingExternalResource implements St
     this.irohaConfig = config;
     return this;
   }
-
   /**
    * Add transaction to genesis block.
    *
