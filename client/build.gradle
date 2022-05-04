@@ -19,12 +19,16 @@ final def jcabiVersion = '0.22.6'
 final def cglibVersion = '3.2.10'
 final def bytebuddyVersion = '1.9.7'
 final def objgenesisVersion = '3.0.1'
-
+final def okhttpVersion = '4.9.3'
+final def jacksonVersion = '2.13.2.2'
 
 dependencies {
     compile "io.reactivex.rxjava2:rxjava:${rxjavaVersion}"
     compile "com.github.soramitsu:iroha-ed25519-sha3-java:${edSha3Version}"
     compile "net.i2p.crypto:eddsa:${edDsaVersion}"
+
+    implementation "com.squareup.okhttp3:okhttp:$okhttpVersion"
+    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     testCompileOnly("org.projectlombok:lombok:$lombokVersion")

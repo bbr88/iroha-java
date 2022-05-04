@@ -4,7 +4,6 @@ import static jp.co.soramitsu.iroha.java.Utils.nonNull;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import jp.co.soramitsu.iroha.java.IrohaAPI;
@@ -37,6 +36,7 @@ public class IrohaContainer extends FailureDetectingExternalResource implements 
 
   // env vars
   private static final String POSTGRES_USER = "POSTGRES_USER";
+  private static final String IROHA_POSTGRES_HOST = "IROHA_POSTGRES_HOST";
   private static final String POSTGRES_HOST = "POSTGRES_HOST";
   private static final String KEY = "KEY";
   private static final String VERBOSITY = "VERBOSITY";
@@ -92,11 +92,12 @@ public class IrohaContainer extends FailureDetectingExternalResource implements 
     irohaDockerContainer = new FixedHostPortGenericContainer<>(irohaDockerImage)
         .withEnv(KEY, PeerConfig.peerKeypairName)
         .withEnv(POSTGRES_HOST, postgresAlias)
+        .withEnv(IROHA_POSTGRES_HOST, postgresAlias)
         .withEnv(POSTGRES_USER, postgresDockerContainer.getUsername())
         .withEnv("WAIT_TIMEOUT", "0") // don't wait for postgres
         .withEnv(VERBOSITY, verbosity)
         .withNetwork(network)
-        .withExposedPorts(conf.getIrohaConfig().getTorii_port())
+        .withExposedPorts(conf.getIrohaConfig().getTorii_port(), conf.getIrohaConfig().getHealthcheck_port())
         .withCopyFileToContainer(MountableFile.forHostPath(conf.getDir().getAbsolutePath()),
             irohaWorkdir)
         .waitingFor(
@@ -265,6 +266,10 @@ public class IrohaContainer extends FailureDetectingExternalResource implements 
     }
 
     return null;
+  }
+
+  public int getHealthCheckPort() {
+    return irohaDockerContainer.getMappedPort(conf.getIrohaConfig().getHealthcheck_port());
   }
 
   /**
